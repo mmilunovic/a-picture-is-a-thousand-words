@@ -3,9 +3,14 @@
 Implementation of CNN-RNN architecture for image caption generation proposed in [this paper](https://arxiv.org/abs/1411.4555). 
 
 ![](https://github.com/mmilunovic/a-picture-is-a-thousand-words/blob/master/resources/description.png)
+<<<<<<< HEAD
 
 ![](https://github.com/mmilunovic/a-picture-is-a-thousand-words/blob/master/resources/multiple.png)
 
+=======
+
+![](https://github.com/mmilunovic/a-picture-is-a-thousand-words/blob/master/resources/multiple.png)
+>>>>>>> 9ff3949d7612969d95933d437f0ac66c3d0caeff
 
 
 [Google AI Blog](https://ai.googleblog.com/2014/11/a-picture-is-worth-thousand-coherent.html) about this problem.
