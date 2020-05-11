@@ -25,7 +25,6 @@ setup_google_colab.setup_week6()
 
 import sys
 sys.path.append("..")
-import grading
 import download_utils
 
 download_utils.link_all_keras_resources()
@@ -45,7 +44,6 @@ from collections import defaultdict
 import re
 import random
 from random import choice
-import grading_utils
 import os
 from keras_utils import reset_tf_session
 import tqdm_utils
