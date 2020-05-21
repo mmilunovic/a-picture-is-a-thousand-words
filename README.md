@@ -27,6 +27,14 @@ foobar.pluralize('goose') # returns 'geese'
 foobar.singularize('phenomena') # returns 'phenomenon'
 ```
 
+## Training the model yourself
+
+If you want to train the model by yourself, you'll need to download training and validation datasets and place them in the train_data and test_data directories:
+
+* [Train images](http://msvocds.blob.core.windows.net/coco2014/train2014.zip)
+* [Validation images](http://msvocds.blob.core.windows.net/coco2014/val2014.zip)
+* [Captions for both train and validation](http://msvocds.blob.core.windows.net/annotations-1-0-3/captions_train-val2014.zip)
+
 ## References
 
 * [Show And Tell Paper](https://arxiv.org/abs/1411.4555) - Original paper
