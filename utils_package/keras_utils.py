@@ -6,7 +6,7 @@ from keras.models import save_model
 import tensorflow as tf
 import keras
 from keras import backend as K
-import tqdm_utils
+from utils_package import tqdm_utils
 
 
 class TqdmProgressCallback(keras.callbacks.Callback):

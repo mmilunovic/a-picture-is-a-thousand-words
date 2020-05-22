@@ -7,7 +7,7 @@ import zipfile
 import cv2
 import numpy as np
 import pickle
-import tqdm_utils
+from utils_package import  tqdm_utils
 
 
 def image_center_crop(img):

@@ -1,3 +1,7 @@
 env/
 models/
 __pycache__/
+models/
+env/
+test_data/
+train_data/
