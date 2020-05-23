@@ -5,6 +5,7 @@ L = keras.layers
 K = keras.backend
 
 from utils_package import utils
+
 import zipfile
 
 import os
@@ -25,6 +26,7 @@ def get_train_features():
     train_img_embeds = utils.read_pickle("./models/train_img_embeds.pickle")
     train_img_fns = utils.read_pickle("./models/train_img_fns.pickle")
 
+    print("Train features shape: ")
     print(train_img_embeds.shape, len(train_img_fns))
 
     return train_img_embeds, train_img_fns
@@ -34,6 +36,7 @@ def get_val_features():
     val_img_embeds = utils.read_pickle("./models/val_img_embeds.pickle")
     val_img_fns = utils.read_pickle("./models/val_img_fns.pickle")
 
+    print("Validation features shape: ")
     print(val_img_embeds.shape, len(val_img_fns))
 
     return val_img_embeds, val_img_fns

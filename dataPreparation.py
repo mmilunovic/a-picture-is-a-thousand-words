@@ -1,18 +1,17 @@
 import zipfile
 import  json
 from collections import defaultdict
+import numpy as np
+import re
 
 import featureExtraction
 
-
-# special tokens
 PAD = "#PAD#"
 UNK = "#UNK#"
 START = "#START#"
 END = "#END#"
 
 
-# extract captions from zip
 def get_captions_for_fns(fns, zip_fn, zip_json_path):
     zf = zipfile.ZipFile(zip_fn)
     j = json.loads(zf.read(zip_json_path).decode("utf8"))
@@ -28,17 +27,16 @@ def get_captions():
     _, train_img_fns = featureExtraction.get_train_features()
     _, val_img_fns = featureExtraction.get_val_features()
 
-    train_captions = get_captions_for_fns(train_img_fns, "captions_train-val2014.zip", 
+    train_captions = get_captions_for_fns(train_img_fns, "./train_data/captions_train-val2014.zip", 
                                         "annotations/captions_train2014.json")
 
-    val_captions = get_captions_for_fns(val_img_fns, "captions_train-val2014.zip", 
+    val_captions = get_captions_for_fns(val_img_fns, "./train_data/captions_train-val2014.zip", 
                                         "annotations/captions_val2014.json")
                                     
 
     return train_captions, val_captions
 
 
-# split sentence into tokens (split into lowercased words)
 def split_sentence(sentence):
     return list(filter(lambda x: len(x) > 0, re.split('\W+', sentence.lower())))
 
@@ -81,7 +79,6 @@ def caption_tokens_to_indices(captions, vocab):
     
     return res
 
-# we will use this during training
 def batch_captions_to_matrix(batch_captions, pad_idx, max_len=None):
     if max_len is None:
         columns = max(map(len, batch_captions))

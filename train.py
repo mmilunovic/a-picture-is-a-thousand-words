@@ -8,6 +8,7 @@ K = keras.backend
 from utils_package import utils
 from utils_package import tqdm_utils
 from utils_package import  keras_utils
+from tqdm import tqdm
 
 import zipfile
 import featureExtraction
@@ -44,9 +45,6 @@ random.seed(42)
 
 s = keras_utils.reset_tf_session()
 
-
-# generate batch via random sampling of images and captions for them,
-# we use `max_len` parameter to control the length of the captions (truncating long captions)
 def generate_batch(images_embeddings, indexed_captions, batch_size, max_len=None):
     sample_index = random.sample(list(range(len(images_embeddings))),batch_size)
     batch_image_embeddings = images_embeddings[sample_index]
@@ -57,87 +55,64 @@ def generate_batch(images_embeddings, indexed_captions, batch_size, max_len=None
             decoder.sentences: batch_captions_matrix}
 
 class decoder:
-    # [batch_size, IMG_EMBED_SIZE] of CNN image features
+
     img_embeds = tf.placeholder('float32', [None, IMG_EMBED_SIZE])
-    # [batch_size, time steps] of word ids
+
     sentences = tf.placeholder('int32', [None, None])
     
-    # we use bottleneck here to reduce the number of parameters
-    # image embedding -> bottleneck
     img_embed_to_bottleneck = L.Dense(IMG_EMBED_BOTTLENECK, 
                                       input_shape=(None, IMG_EMBED_SIZE), 
                                       activation='elu')
-    # image embedding bottleneck -> lstm initial state
+
     img_embed_bottleneck_to_h0 = L.Dense(LSTM_UNITS,
                                          input_shape=(None, IMG_EMBED_BOTTLENECK),
                                          activation='elu')
-    # word -> embedding
+
     word_embed = L.Embedding(len(vocab), WORD_EMBED_SIZE)
-    # lstm cell (from tensorflow)
     lstm = tf.nn.rnn_cell.LSTMCell(LSTM_UNITS)
     
-    # we use bottleneck here to reduce model complexity
-    # lstm output -> logits bottleneck
     token_logits_bottleneck = L.Dense(LOGIT_BOTTLENECK, 
                                       input_shape=(None, LSTM_UNITS),
                                       activation="elu")
-    # logits bottleneck -> logits for next token prediction
+
     token_logits = L.Dense(len(vocab),
                            input_shape=(None, LOGIT_BOTTLENECK))
     
-    # initial lstm cell state of shape (None, LSTM_UNITS),
-    # we need to condition it on `img_embeds` placeholder.
-    c0 = h0 = img_embed_bottleneck_to_h0(img_embed_to_bottleneck(img_embeds))### YOUR CODE HERE ###
+    c0 = h0 = img_embed_bottleneck_to_h0(img_embed_to_bottleneck(img_embeds))
 
-    # embed all tokens but the last for lstm input,
-    # remember that L.Embedding is callable,
-    # use `sentences` placeholder as input.
     word_embeds = word_embed(sentences[:,:-1,]) #32*20*100
     
-    # during training we use ground truth tokens `word_embeds` as context for next token prediction.
-    # that means that we know all the inputs for our lstm and can get 
-    # all the hidden states with one tensorflow operation (tf.nn.dynamic_rnn).
-    # `hidden_states` has a shape of [batch_size, time steps, LSTM_UNITS].
     hidden_states, _ = tf.nn.dynamic_rnn(lstm, word_embeds,
                                          initial_state=tf.nn.rnn_cell.LSTMStateTuple(c0, h0))
 
-    # now we need to calculate token logits for all the hidden states
     
-    # first, we reshape `hidden_states` to [-1, LSTM_UNITS]
     flat_hidden_states = tf.reshape(hidden_states, [-1, LSTM_UNITS])
 
-    # then, we calculate logits for next tokens using `token_logits_bottleneck` and `token_logits` layers
     flat_token_logits = token_logits(token_logits_bottleneck(flat_hidden_states))
     
-    # then, we flatten the ground truth token ids.
-    # remember, that we predict next tokens for each time step,
-    # use `sentences` placeholder.
     flat_ground_truth = tf.reshape(sentences[:,1:],[-1,])
 
     flat_loss_mask = tf.cast(tf.not_equal(flat_ground_truth,pad_idx),tf.float32)
-    # compute cross-entropy between `flat_ground_truth` and `flat_token_logits` predicted by lstm
+
     xent = tf.nn.sparse_softmax_cross_entropy_with_logits(
         labels=flat_ground_truth, 
         logits=flat_token_logits
     )
 
-    # compute average `xent` over tokens with nonzero `flat_loss_mask`.
-    # we don't want to account misclassification of PAD tokens, because that doesn't make sense,
-    # we have PAD tokens for batching purposes only!
     loss = tf.reduce_sum(tf.multiply(xent, flat_loss_mask)) / tf.reduce_sum(flat_loss_mask)
 
 
-# define optimizer operation to minimize the loss
 optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
 train_step = optimizer.minimize(decoder.loss)
 
-# will be used to save/load network weights.
-# you need to reset your default graph and define it in the same way to be able to load the saved weights!
 saver = tf.train.Saver()
 
-# intialize all variables
 s.run(tf.global_variables_initializer())
 
+train_captions, val_captions = dataPreparation.get_captions()
+
+train_captions_indexed = dataPreparation.caption_tokens_to_indices(train_captions, vocab)
+val_captions_indexed = dataPreparation.caption_tokens_to_indices(val_captions, vocab)
 
 train_captions_indexed = np.array(train_captions_indexed)
 val_captions_indexed = np.array(val_captions_indexed)
@@ -146,7 +121,7 @@ val_captions_indexed = np.array(val_captions_indexed)
 for epoch in range(n_epochs):
     
     train_loss = 0
-    pbar = tqdm_utils.tqdm_notebook_failsafe(range(n_batches_per_epoch))
+    pbar = tqdm(range(n_batches_per_epoch))
     counter = 0
     for _ in pbar:
         train_loss += s.run([decoder.loss, train_step], 
@@ -169,8 +144,7 @@ for epoch in range(n_epochs):
     
     print('Epoch: {}, train loss: {}, val loss: {}'.format(epoch, train_loss, val_loss))
 
-    # save weights after finishing epoch
-    saver.save(s, dataPreparation.get_checkpoint_path(epoch))
+    saver.save(s, utils.get_checkpoint_path(epoch))
     
 print("Finished!")
 

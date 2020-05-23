@@ -9,6 +9,8 @@ import numpy as np
 import pickle
 from utils_package import  tqdm_utils
 
+CHECKPOINT_ROOT = ""
+
 
 def image_center_crop(img):
     h, w = img.shape[0], img.shape[1]
@@ -121,3 +123,10 @@ def save_pickle(obj, fn):
 def read_pickle(fn):
     with open(fn, "rb") as f:
         return pickle.load(f)
+
+
+def get_checkpoint_path(epoch=None):
+    if epoch is None:
+        return os.path.abspath(CHECKPOINT_ROOT + "weights")
+    else:
+        return os.path.abspath(CHECKPOINT_ROOT + "weights_{}".format(epoch))
