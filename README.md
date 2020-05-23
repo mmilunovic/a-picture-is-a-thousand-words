@@ -20,11 +20,7 @@ pip install -r requirements.txt
 ## Usage
 
 ```python
-import foobar
-
-foobar.pluralize('word') # returns 'words'
-foobar.pluralize('goose') # returns 'geese'
-foobar.singularize('phenomena') # returns 'phenomenon'
+apply_model_to_image_raw_bytes(open("test-image.jpg", "rb").read())
 ```
 
 ## Training the model yourself
